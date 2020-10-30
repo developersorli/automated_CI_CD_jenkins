@@ -39,8 +39,8 @@
 
                         sh returnStatus: true, script: "kubectl --kubeconfig /etc/kubernetes/config create namespace ${environment}"
                         // In case you need to use credentials
-//                        git branch: "master", credentialsId: "git_token", url: graph.'kubernetes-config'.repo_url
-                        git branch: "master", url: graph.'kubernetes-config'.repo_url
+//                        git branch: "main", credentialsId: "git_token", url: graph.'kubernetes-config'.repo_url
+                        git branch: "main", url: graph.'kubernetes-config'.repo_url
                         sh script: "git checkout ${graph.'kubernetes-config'.revision}"
 
 
@@ -76,8 +76,8 @@
                     dir("tests") {
                         deleteDir()
 
-//                        git branch: "master", credentialsId: "git_token", url: graph.'kubernetes-config'.repo_url
-                        git branch: "master", url: graph.'kubernetes-config'.repo_url
+//                        git branch: "main", credentialsId: "git_token", url: graph.'kubernetes-config'.repo_url
+                        git branch: "main", url: graph.'kubernetes-config'.repo_url
 
                         sh script: "git checkout ${graph.'kubernetes-config'.revision}"
 
