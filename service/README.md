@@ -12,10 +12,10 @@ docker run -v /home/programer/Documents/devops/settings/:/opt/app/settings/ -it 
 ```
 
 ```sh
-curl -i -H GET  'http://localhost:1236/ping'
+curl -i -H GET  'http://localhost:8080/ping'
 ```
 
 ```sh
-curl -i -H GET  'http://localhost:1236/version'
+curl -i -H GET  'http://localhost:8080/version'
 
 ```
