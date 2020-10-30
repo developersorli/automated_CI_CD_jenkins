@@ -20,7 +20,7 @@ freeStyleJob(project_name) {
                 url(git_url)
                 name('${JOB_NAME}')
             }
-            branch('master')
+            branch('main')
         }
     }
 

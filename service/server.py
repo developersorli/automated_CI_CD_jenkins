@@ -10,7 +10,7 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         path = self.path
-        do_file = Path("/opt/app/settings/domaintancemode")
+        do_file = Path("/opt/app/do_maintance_mode")
         if do_file.is_file():
                # file exists
                self.send_response(503, 'Service Unavalible')
@@ -33,5 +33,5 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 
 httpd = socketserver.TCPServer(("", int(PORT)), CustomRequestHandler)
-print("Python web server listening on port {}...".format(PORT))
+print("Python CTS web server listening on port {}...".format(PORT))
 httpd.serve_forever()

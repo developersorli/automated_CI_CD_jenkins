@@ -36,5 +36,4 @@ spec:
       port: 8080
       targetPort: 8080
       protocol: TCP
-  volumes:
-      - /home/programer/Documents/devops/settings/:/opt/app/settings/
+

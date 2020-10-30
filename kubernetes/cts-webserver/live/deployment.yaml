@@ -37,5 +37,4 @@ spec:
       targetPort: 8080
       protocol: TCP
       nodePort: 30002
-  volumes:
-      - /home/programer/Documents/devops/settings/:/opt/app/settings/
+
