@@ -25,11 +25,12 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
                     #self.wfile.write(bytes("","utf-8"))
                else:
                     if '/version' in path:
-			with open('./index.html', 'rb') as f:
-			    self.send_response(200)
-			    self.send_header('Content-Type', 'text/html; charset=utf-8')
-			    self.end_headers()
-			    self.wfile.write(f.read())
+                         with open('./index.html', 'rb') as f:
+                            self.send_response(200)
+                            self.send_header('Content-Type', 'text/html; charset=utf-8')
+                            self.end_headers()
+                            self.wfile.write(f.read())
+
 
 
 httpd = socketserver.TCPServer(("", int(PORT)), CustomRequestHandler)
