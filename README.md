@@ -1,2 +1,192 @@
 # devops
 DevOps - Jenkins, Python, Kuebnetes, docker
+
+# Install development enviroment
+
+## Install docker
+```
+sudo apt-get update
+
+sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+
+sudo apt install curl
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+sudo apt-key fingerprint 0EBFCD88
+
+sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable"
+
+sudo apt-get update
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+sudo groupadd docker
+sudo usermod -aG docker $USER
+docker run hello-world
+```
+
+## Install Kubernetes
+```
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo apt install apt-transport-https curl
+curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
+sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
+sudo apt install kubeadm kubelet kubectl kubernetes-cni
+sudo swapoff -a
+sudo nano /etc/fstab
+# Comment this line
+/swapfile
+#to this
+#/swapfile
+
+```
+# Project
+
+# Checkout project
+```
+git clone https://github.com/sorli2se/devops.git
+```
+# Initialize Kubernetes
+
+```
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+```
+## Configure Kubernetes command line
+
+```
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+## Check what's running on the clustert
+```
+kubectl cluster-info
+kubectl get pods -n kube-system
+```
+
+## Install Flannel
+[https://github.com/coreos/flannel]
+
+Flannel runs a small, single binary agent called flanneld on each host, 
+and is responsible for allocating a subnet lease to each host out of a larger, 
+preconfigured address space. Flannel uses either the Kubernetes API or 
+etcd directly to store the network configuration, the allocated subnets, 
+and any auxiliary data (such as the host's public IP).
+```
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+```
+## Find master node name and make it schedulable
+```
+export K8S_MASTER=$(kubectl get nodes -o name | cut -d/ -f2)
+echo $K8S_MASTER
+
+kubectl describe node $K8S_MASTER
+
+kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
+```
+## Find Jenkins secret token
+```
+JENKINS_TOKEN=$(kubectl get secrets $(kubectl get sa jenkins -o json|jq -r '.secrets[].name') -o json|jq -r '.data.token'|base64 -d)
+echo $JENKINS_TOKEN
+```
+## Jenkins Build and deploy
+
+```
+# Build jenkins docker image
+docker build --build-arg K8S_TOKEN=$JENKINS_TOKEN -t jenkins:docker jenkins-build/.
+
+# Deploy Jenkins
+kubectl create -f  jenkins-build/deployment.yaml
+
+# Create service
+kubectl create -f  jenkins-build/service.yaml
+```
+## Find Jenkins admin password
+
+```
+# Save Jenkins pod name in env var
+export JENKINS_POD=$(kubectl get po -l name=jenkins -o name | cut -d/ -f2)
+echo $JENKINS_POD
+
+# Get the admin password from the logs 
+kubectl logs -f $JENKINS_POD
+
+# Or from inside the container
+kubectl exec $JENKINS_POD -- cat /var/jenkins_home/secrets/initialAdminPassword
+
+kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:-
+```
+## Find jenkins ip and port
+```
+kubectl describe services -n default | grep 'Endpoints:'
+```
+## Install additional plugins
+
+```
+# Get into the jenkins pod
+kubectl exec -ti $JENKINS_POD -- bash
+
+java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar \
+    -auth admin:admin \
+    -s http://127.0.0.1:8080/ \
+    install-plugin copyartifact job-dsl pipeline-utility-steps
+```
+
+Or manually instal plugins: copyartifact job-dsl pipeline-utility-steps
+
+#Test
+
+## Find service end points
+```
+$kubectl describe services -n test | grep 'Endpoints:'
+Endpoints:         10.244.0.50:8080
+```
+## Test connection
+```
+$curl -i -H GET  'http://10.244.0.50:8080/ping'
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.8.5
+Date: Sat, 31 Oct 2020 17:58:03 GMT
+Content-Type: text/html; charset=utf-8
+```
+
+### Login in bash console
+```
+$kubectl get pods -n test
+$kubectl -n test  exec --stdin --tty cts-webserver-c99dc6785-xx2cr -- /bin/bash
+
+
+```
+### Set service in maintance mode
+```
+$kubectl -n test exec cts-webserver-c99dc6785-xx2cr -- touch /opt/app/do_maintance_mode
+```
+#### Test service
+```
+$curl -i -H GET  'http://10.244.0.50:8080/
+$curl -i -H GET  'http://10.244.0.50:8080/ping'
+HTTP/1.0 503 Service Unavalible
+Server: SimpleHTTP/0.6 Python/3.8.5
+Date: Sat, 31 Oct 2020 21:15:08 GMT
+Content-Type: text/html; charset=utf-8
+```
+### Set service in working mode
+```
+$kubectl -n test exec cts-webserver-c99dc6785-xx2cr -- rm /opt/app/do_maintance_mode
+```
+#### Test service
+```
+$curl -i -H GET  'http://10.244.0.50:8080/ping'
+HTTP/1.0 200 OK
+Server: SimpleHTTP/0.6 Python/3.8.5
+Date: Sat, 31 Oct 2020 21:16:03 GMT
+Content-Type: text/html; charset=utf-8
+```

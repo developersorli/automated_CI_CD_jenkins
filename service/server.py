@@ -16,13 +16,11 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
                self.send_response(503, 'Service Unavalible')
                self.send_header('Content-Type', 'text/html; charset=utf-8')
                self.end_headers()
-               #self.wfile.write(bytes("","utf-8"))
         else:
                if '/ping' in path:
                     self.send_response(200, 'OK')
                     self.send_header('Content-Type', 'text/html; charset=utf-8')
                     self.end_headers()
-                    #self.wfile.write(bytes("","utf-8"))
                else:
                     if '/version' in path:
                          with open('./index.html', 'rb') as f:
