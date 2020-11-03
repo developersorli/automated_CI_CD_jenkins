@@ -1,4 +1,5 @@
 def project_name = "kubernetes-config"
+def project_webserver = "cts-webserver"
 def git_url = "https://github.com/sorli2se/devops.git"
 freeStyleJob(project_name) {
 
@@ -46,6 +47,18 @@ echo "$VAR" > metadata.txt
             pattern('metadata.txt')
             onlyIfSuccessful()
             fingerprint()
+        }
+        postBuildTask {
+            trigger(project_webserver) {
+                block {
+                    buildStepFailure('FAILURE')
+                    failure('FAILURE')
+                    unstable('UNSTABLE')
+                }
+                parameters {
+                    predefinedProp('K8S_CONFIG', '$JOB_NAME')
+                }
+            }
         }
     }
 }
