@@ -50,17 +50,5 @@ cat artifacts/$K8S_CONFIG_JOBNAME/metadata.txt >> $graph_file
             onlyIfSuccessful()
             fingerprint()
         }
-        postBuildTask {
-            trigger(cd_job_name) {
-                block {
-                    buildStepFailure('FAILURE')
-                    failure('FAILURE')
-                    unstable('UNSTABLE')
-                }
-                parameters {
-                    predefinedProp('CI_JOB', '$JOB_NAME')
-                }
-            }
-        }
     }
 }

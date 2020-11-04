@@ -1,6 +1,5 @@
 def project_name = "cts-webserver"
 def git_url = "https://github.com/sorli2se/devops.git"
-def ci_job_name = "ci-job-cts-webserver"
 
 freeStyleJob(project_name) {
 
@@ -50,18 +49,6 @@ echo "service:
             pattern('metadata.txt')
             onlyIfSuccessful()
             fingerprint()
-        }
-        postBuildTask {
-            trigger(ci_job_name) {
-                block {
-                    buildStepFailure('FAILURE')
-                    failure('FAILURE')
-                    unstable('UNSTABLE')
-                }
-                parameters {
-                    predefinedProp('SERVICE', '$JOB_NAME')
-                }
-            }
         }
     }
 }
