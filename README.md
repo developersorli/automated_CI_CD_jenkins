@@ -53,6 +53,31 @@ sudo nano /etc/fstab
 ```
 git clone https://github.com/sorli2se/devops.git
 ```
+
+# Clean existing enviroment
+```
+sudo systemctl status kublet   # see if its actually running
+sudo systemctl stop kubelet    # stop it
+sudo docker stop $(docker ps -a -q)
+sudo docker rm $(docker ps -a -q)
+sudo systemctl start docker
+sudo systemctl enable docker
+sudo systemctl start docker.service
+ sudo kubeadm reset -f && 
+ sudo systemctl stop kubelet && 
+ sudo systemctl stop docker && 
+ sudo rm -rf /var/lib/cni/ && 
+ sudo rm -rf /var/lib/kubelet/* && 
+ sudo rm -rf /etc/cni/ && 
+ sudo ifconfig cni0 down && 
+ sudo ifconfig flannel.1 down && 
+ sudo ifconfig docker0 down && 
+ sudo ip link delete cni0 && 
+ sudo ip link delete flannel.1
+ sudo rm -rf /var/lib/etcd/*
+sudo rm -rf $HOME/.kube
+sudo systemctl start kubelet
+```
 # Initialize Kubernetes
 
 ```
@@ -92,6 +117,11 @@ kubectl describe node $K8S_MASTER
 
 kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 ```
+#### Jenkins RBAC Permissions
+```
+kubectl create -f jenkins-build/rbac.yaml
+```
+
 ## Find Jenkins secret token
 ```
 JENKINS_TOKEN=$(kubectl get secrets $(kubectl get sa jenkins -o json|jq -r '.secrets[].name') -o json|jq -r '.data.token'|base64 -d)
@@ -121,8 +151,9 @@ kubectl logs -f $JENKINS_POD
 
 # Or from inside the container
 kubectl exec $JENKINS_POD -- cat /var/jenkins_home/secrets/initialAdminPassword
+kubectl exec --stdin --tty $JENKINS_POD -- /bin/bash
 
-kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:-
+kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 ```
 ## Find jenkins ip and port
 ```
