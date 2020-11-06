@@ -124,6 +124,7 @@ kubectl create -f jenkins-build/rbac.yaml
 
 ## Find Jenkins secret token
 ```
+sudo apt  install jq
 JENKINS_TOKEN=$(kubectl get secrets $(kubectl get sa jenkins -o json|jq -r '.secrets[].name') -o json|jq -r '.data.token'|base64 -d)
 echo $JENKINS_TOKEN
 ```
