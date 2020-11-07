@@ -1,7 +1,26 @@
 # devops
 DevOps - Jenkins, Python, Kuebnetes, docker
 
+## Contents
+
+### jenkins-build folder:
+
+It contains all the resources required to build and deploy a Jenkins 
+stand-alone pod in Kubernetes.
+
+### jenkins-jobs folder
+It contains the groovy Jenkins job definitions for all the Job used to create the CI/CD pipeline.
+
+### service folder
+Contains CTS service and docker
+
+### kubernetes folder
+Deplojment via kubernetes in test, staging and production
+It also contains some placeholder (as SERVICE_NAME, IMAGE_VERSION) 
+to be replaced during the pipeline execution with actual build data
+
 # Install development enviroment
+
 
 ## Install docker
 ```
@@ -53,15 +72,15 @@ sudo nano /etc/fstab
 ```
 git clone https://github.com/sorli2se/devops.git
 ```
-
 # Clean existing enviroment
 ```
+sudo apt install net-tools
+
 sudo systemctl status kublet   # see if its actually running
 sudo systemctl stop kubelet    # stop it
 sudo docker stop $(docker ps -a -q)
 sudo docker rm $(docker ps -a -q)
-sudo systemctl start docker
-sudo systemctl enable docker
+sudo systemctl stop docker
 sudo systemctl start docker.service
  sudo kubeadm reset -f && 
  sudo systemctl stop kubelet && 
@@ -76,8 +95,12 @@ sudo systemctl start docker.service
  sudo ip link delete flannel.1
  sudo rm -rf /var/lib/etcd/*
 sudo rm -rf $HOME/.kube
+
+sudo systemctl start docker
+sudo systemctl enable docker
 sudo systemctl start kubelet
 ```
+
 # Initialize Kubernetes
 
 ```
@@ -114,7 +137,6 @@ export K8S_MASTER=$(kubectl get nodes -o name | cut -d/ -f2)
 echo $K8S_MASTER
 
 kubectl describe node $K8S_MASTER
-
 kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 ```
 #### Jenkins RBAC Permissions
@@ -159,7 +181,7 @@ kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 ## Configure in jenkins browser
 
  1.Open url http://localhost:30001
- 2.And paste string into textfiled to unlock Jenkis
+ 2.And paste string into textfiled to unlock Jenkins
  3.Click Install suggested plugins
  4.Create first Admin User
  5.Install plugins: copyartifact
@@ -183,14 +205,14 @@ safe-restart
 
 Or manually instal plugins: copyartifact job-dsl pipeline-utility-steps
 
-# Deploy project job in Jenkis
+# Deploy project job in Jenkins
 ```
  cd /var/jenkins_home/
- git clone https://github.com/sorli2se/cts.git jobs/
+ git clone https://github.com/sorli2se/cts-jenkins.git jobs/
  cd jobs/
- rm -fr dsl-jobs/
+ rm -fr dsl-jobs/ #We dont need it anymore
 ```
-In browser click Manage Jenikis -> Reload Coniguration from Disk
+In browser click Manage Jenikins -> Reload Coniguration from Disk
 
 Go to
 http://localhost:30001:8080/job/kubernetes-config/configure
@@ -269,3 +291,20 @@ HTTP/1.0 200 OK
 Server: SimpleHTTP/0.6 Python/3.8.5
 Date: Sat, 31 Oct 2020 21:16:03 GMT
 Content-Type: text/html; charset=utf-8
+
+
+# New bug and how to reproduce bug in Jenkins for buld CD
+If you get error by command:
+kubectl --kubeconfig /etc/kubernetes/config create namespace test
+error: no matches for kind "Namespace" in version "v1"
+
+The problem is that I login in ip:port of jenkins end point to Jenikins and not to exposed port.
+
+I have solved this in subject Clean existing enviroment and then 
+continue from begining in subject Initialize Kubernetes and repeat till subject Jenkins Build and deploy.
+
+# References
+
+https://github.com/DevOpsPlayground/Hands-on-with-Jenkins-CI-CD-Pipelines-in-Kubernetes
+https://www.magalix.com/blog/create-a-ci/cd-pipeline-with-kubernetes-and-jenkins
+
