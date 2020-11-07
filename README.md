@@ -156,10 +156,14 @@ kubectl exec --stdin --tty $JENKINS_POD -- /bin/bash
 
 kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 ```
-## Find jenkins ip and port
-```
-kubectl describe services -n default | grep 'Endpoints:'
-```
+## Configure in jenkins browser
+
+ 1.Open url http://localhost:30001
+ 2.And paste string into textfiled to unlock Jenkis
+ 3.Click Install suggested plugins
+ 4.Create first Admin User
+ 5.Install plugins: copyartifact
+
 ## Install additional plugins
 
 ```
@@ -170,17 +174,60 @@ java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar \
     -auth admin:admin \
     -s http://127.0.0.1:8080/ \
     install-plugin copyartifact job-dsl pipeline-utility-steps
+
+java -jar jenkins-cli.jar \
+    -auth admin:admin \
+    -s http://127.0.0.1:8080/ \
+safe-restart
 ```
 
 Or manually instal plugins: copyartifact job-dsl pipeline-utility-steps
+
+# Deploy project job in Jenkis
+```
+ cd /var/jenkins_home/
+ git clone https://github.com/sorli2se/cts.git jobs/
+ cd jobs/
+ rm -fr dsl-jobs/
+```
+In browser click Manage Jenikis -> Reload Coniguration from Disk
+
+Go to
+http://localhost:30001:8080/job/kubernetes-config/configure
+Source Code Managment > Credetntials > Add
+and add credentials of git project
+
+Go to
+http://localhost:30001/job/cts-webserver/configure
+Source Code Managment > Credetntials > Select130
+and add credentials of git project
+
+And go to 
+http://localhost:30001/job/kubernetes-config/
+And click build
+
+If everthing is ok is last version deployed. 
+If we wanna deploy custom version go to
+http://localhost:30001/job/cd-job-cts-webserver/
+and click build with parameters and select build of CI.
+
+# Auto deploy projets CTS on git commit
+
+Go to 
+http://localhost:30001/job/kubernetes-config/configure
+and click Poll SCM 
+Enter text for example "H/15 * * * *" in field Schedule
+
+Or you can use GitHub hook trigger for GITScm polling
 
 #Test
 
 ## Find service end points
 ```
-$kubectl describe services -n test | grep 'Endpoints:'
-Endpoints:         10.244.0.50:8080
+kubectl describe services -n test | grep 'Endpoints:'
 ```
+Endpoints:         10.244.0.50:8080
+
 ## Test connection
 ```
 $curl -i -H GET  'http://10.244.0.50:8080/ping'
@@ -190,35 +237,35 @@ Date: Sat, 31 Oct 2020 17:58:03 GMT
 Content-Type: text/html; charset=utf-8
 ```
 
-### Login in bash console
+### How to Login in bash console
 ```
-$kubectl get pods -n test
-$kubectl -n test  exec --stdin --tty cts-webserver-c99dc6785-xx2cr -- /bin/bash
-
+kubectl get pods -n test
+kubectl -n test  exec --stdin --tty cts-webserver-c99dc6785-xx2cr -- /bin/bash
 
 ```
 ### Set service in maintance mode
 ```
-$kubectl -n test exec cts-webserver-c99dc6785-xx2cr -- touch /opt/app/do_maintance_mode
+kubectl -n test exec cts-webserver-c99dc6785-xx2cr -- touch /opt/app/do_maintance_mode
 ```
-#### Test service
+#### Test service in maintance mode
 ```
-$curl -i -H GET  'http://10.244.0.50:8080/
-$curl -i -H GET  'http://10.244.0.50:8080/ping'
+curl -i -H GET  'http://10.244.0.50:8080/
+curl -i -H GET  'http://10.244.0.50:8080/ping'
+```
 HTTP/1.0 503 Service Unavalible
 Server: SimpleHTTP/0.6 Python/3.8.5
 Date: Sat, 31 Oct 2020 21:15:08 GMT
 Content-Type: text/html; charset=utf-8
-```
+
 ### Set service in working mode
 ```
-$kubectl -n test exec cts-webserver-c99dc6785-xx2cr -- rm /opt/app/do_maintance_mode
+kubectl -n test exec cts-webserver-c99dc6785-xx2cr -- rm /opt/app/do_maintance_mode
 ```
 #### Test service
 ```
-$curl -i -H GET  'http://10.244.0.50:8080/ping'
+curl -i -H GET  'http://10.244.0.50:8080/ping'
+```
 HTTP/1.0 200 OK
 Server: SimpleHTTP/0.6 Python/3.8.5
 Date: Sat, 31 Oct 2020 21:16:03 GMT
 Content-Type: text/html; charset=utf-8
-```
