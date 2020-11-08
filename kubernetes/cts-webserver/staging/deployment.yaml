@@ -30,7 +30,7 @@ spec:
               memory: "128Mi"
               cpu: "500m"
           args:
-          - -cpus
+          - cpus
           - "1"
 ---
 apiVersion: v1

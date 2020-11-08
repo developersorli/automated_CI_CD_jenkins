@@ -255,12 +255,13 @@ Endpoints:         10.244.0.50:8080
 
 ## Test connection
 ```
-$curl -i -H GET  'http://10.244.0.50:8080/ping'
+curl -i -H GET  'http://10.244.0.50:8080/ping'
+```
 HTTP/1.0 200 OK
 Server: SimpleHTTP/0.6 Python/3.8.5
 Date: Sat, 31 Oct 2020 17:58:03 GMT
 Content-Type: text/html; charset=utf-8
-```
+
 
 ### How to Login in bash console
 ```
