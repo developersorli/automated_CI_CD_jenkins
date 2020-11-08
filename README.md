@@ -70,7 +70,7 @@ sudo nano /etc/fstab
 
 # Checkout project
 ```
-git clone https://github.com/sorli2se/devops.git
+git clone https://github.com/sorli2se/cts.git
 ```
 # Clean existing enviroment
 ```

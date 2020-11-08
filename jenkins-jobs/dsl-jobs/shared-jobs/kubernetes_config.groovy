@@ -1,5 +1,5 @@
 def project_name = "kubernetes-config"
-def git_url = "https://github.com/sorli2se/devops.git"
+def git_url = "https://github.com/sorli2se/cts.git"
 freeStyleJob(project_name) {
 
     logRotator(-1, 30)
