@@ -1,5 +1,5 @@
-# devops
-DevOps - Jenkins, Python, Kuebnetes, docker
+# cts
+CTS - Connectivity Test Server - Ubuntu, Jenkins, Python, Kuebnetes, docker
 
 ## Contents
 
