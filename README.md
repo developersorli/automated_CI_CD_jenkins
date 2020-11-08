@@ -80,6 +80,7 @@ sudo systemctl status kublet   # see if its actually running
 sudo systemctl stop kubelet    # stop it
 sudo docker stop $(docker ps -a -q)
 sudo docker rm $(docker ps -a -q)
+docker container prune
 sudo systemctl stop docker
 sudo systemctl start docker.service
  sudo kubeadm reset -f && 
@@ -184,14 +185,21 @@ kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
  2.And paste string into textfiled to unlock Jenkins
  3.Click Install suggested plugins
  4.Create first Admin User
- 5.Install plugins: copyartifact
 
-## Install additional plugins
+##Checkout project job and tool
 
 ```
 # Get into the jenkins pod
 kubectl exec -ti $JENKINS_POD -- bash
 
+ cd /var/jenkins_home/jobs/
+ git clone https://github.com/sorli2se/cts-jenkins.git .
+```
+
+
+## Install additional plugins
+
+```
 java -jar /var/jenkins_home/war/WEB-INF/jenkins-cli.jar \
     -auth admin:admin \
     -s http://127.0.0.1:8080/ \
@@ -206,12 +214,7 @@ safe-restart
 Or manually instal plugins: copyartifact job-dsl pipeline-utility-steps
 
 # Deploy project job in Jenkins
-```
- cd /var/jenkins_home/
- git clone https://github.com/sorli2se/cts-jenkins.git jobs/
- cd jobs/
- rm -fr dsl-jobs/ #We dont need it anymore
-```
+
 In browser click Manage Jenikins -> Reload Coniguration from Disk
 
 Go to
@@ -292,13 +295,30 @@ Server: SimpleHTTP/0.6 Python/3.8.5
 Date: Sat, 31 Oct 2020 21:16:03 GMT
 Content-Type: text/html; charset=utf-8
 
+# Infrastructure resilient of failures
 
+optionally specify how much of each resource a Container needs
+If the node where a Pod is running has enough of a resource available, 
+it's possible (and allowed) for a container to use more resource than 
+its request for that resource specifies. However, a container is 
+not allowed to use more than its resource limit.
+To specify a CPU request for a container, include the resources:requests 
+field in the Container resource manifest.
+```
+    resources:
+      requests:
+        memory: "64Mi"
+        cpu: "250m"
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+```
 # New bug and how to reproduce bug in Jenkins for buld CD
 If you get error by command:
 kubectl --kubeconfig /etc/kubernetes/config create namespace test
 error: no matches for kind "Namespace" in version "v1"
 
-The problem is that I login in ip:port of jenkins end point to Jenikins and not to exposed port.
+The problem is that I login in browser http://ip:port of jenkins end point to Jenikins and not to exposed port.
 
 I have solved this in subject Clean existing enviroment and then 
 continue from begining in subject Initialize Kubernetes and repeat till subject Jenkins Build and deploy.
@@ -307,4 +327,5 @@ continue from begining in subject Initialize Kubernetes and repeat till subject 
 
 https://github.com/DevOpsPlayground/Hands-on-with-Jenkins-CI-CD-Pipelines-in-Kubernetes
 https://www.magalix.com/blog/create-a-ci/cd-pipeline-with-kubernetes-and-jenkins
-
+https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/
+https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/

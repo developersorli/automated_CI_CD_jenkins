@@ -29,6 +29,9 @@ spec:
             limits:
               memory: "128Mi"
               cpu: "500m"
+          args:
+          - -cpus
+          - "2"
 ---
 apiVersion: v1
 kind: Service
