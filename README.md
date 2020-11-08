@@ -316,7 +316,7 @@ field in the Container resource manifest.
     - -cpus
     - "2"
 ```
-# New bug and how to reproduce bug in Jenkins for buld CD
+# New bug and how to reproduce bug in Jenkins for buld CD job
 If you get error by command:
 kubectl --kubeconfig /etc/kubernetes/config create namespace test
 error: no matches for kind "Namespace" in version "v1"
