@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: SERVICE_NAME
-          image: SERVICE_NAME:IMAGE_VERSION
+          image: localhost/SERVICE_NAME:IMAGE_VERSION
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
