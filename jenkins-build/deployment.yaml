@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - env:
-          image: jenkins:docker
+          image: localhost/jenkins:docker
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 2

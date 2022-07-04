@@ -1,5 +1,5 @@
 # cts
-CTS - Connectivity Test Server - Ubuntu 20.04LTS, Jenkins, Python, Kuebnetes, docker
+CTS - Connectivity Test Server - Centos 7, Jenkins, Python, Kuebnetes, docker
 
 ## Contents
 
@@ -24,27 +24,30 @@ to be replaced during the pipeline execution with actual build data
 
 ## Install docker
 ```
-sudo apt-get update
+#Uninstall old versions
+sudo yum remove docker \
+                  docker-client \
+                  docker-client-latest \
+                  docker-common \
+                  docker-latest \
+                  docker-latest-logrotate \
+                  docker-logrotate \
+                  docker-engine
 
-sudo apt-get install \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg-agent \
-    software-properties-common
+#Set up the repository
+sudo yum install -y yum-utils
 
-sudo apt install curl
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
 
-sudo apt-key fingerprint 0EBFCD88
 
-sudo add-apt-repository \
-   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
-   $(lsb_release -cs) \
-   stable"
+sudo yum erase podman buildah
 
-sudo apt-get update
-sudo apt-get install docker-ce docker-ce-cli containerd.io
+#Install Docker Engine
+sudo yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+sudo systemctl start docker
 
 sudo groupadd docker
 sudo usermod -aG docker $USER
@@ -55,23 +58,41 @@ docker run hello-world
 ```
 sudo systemctl start docker
 sudo systemctl enable docker
-sudo apt install apt-transport-https curl
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add
-sudo apt-add-repository "deb http://apt.kubernetes.io/ kubernetes-xenial main"
-sudo apt install kubeadm kubelet kubectl kubernetes-cni
+```
+```
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+```
+```
+sudo yum install -y kubelet kubeadm kubectl
+```
+#Optional test
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+#Disable SWAP
+```
+sudo sed -i '/swap/d' /etc/fstab
 sudo swapoff -a
-sudo nano /etc/fstab
-# Comment this line
-/swapfile
-#to this
-#/swapfile
-
+```
+#Open ports on firewall
+```
+firewall-cmd --zone=public --permanent --add-port={6443,2379,2380,10250,10251,10252}/tcp
+```
+#Make the changes permanent.
+```
+firewall-cmd --reload
 ```
 
-# Clean existing enviroment
+#Clean existing enviroment
 ```
-sudo apt install net-tools
-
 sudo systemctl status kublet   # see if its actually running
 sudo systemctl stop kubelet    # stop it
 sudo docker stop $(docker ps -a -q)
@@ -96,12 +117,20 @@ sudo rm -rf $HOME/.kube
 sudo systemctl start docker
 sudo systemctl enable docker
 sudo systemctl start kubelet
+sudo systemctl enable kubelet
 ```
 
 # Initialize Kubernetes
 
 ```
 sudo kubeadm init --pod-network-cidr=10.244.0.0/16
+```
+
+# if kubeadm init faild
+```
+rm /etc/containerd/config.toml
+systemctl restart containerd
+#And initialize Kubernetes
 ```
 ## Configure Kubernetes command line
 
@@ -111,10 +140,15 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-## Check what's running on the clustert
+### Check what's running on the cluster
 ```
 kubectl cluster-info
 kubectl get pods -n kube-system
+```
+####Output will be something this
+```
+Kubernetes control plane is running at https://10.0.2.15:6443
+CoreDNS is running at https://10.0.2.15:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 ```
 
 ## Install Flannel
@@ -145,6 +179,7 @@ kubectl describe node $K8S_MASTER
 kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 ```
 
+
 # Project
 
 # Checkout project
@@ -152,20 +187,22 @@ kubectl taint node $K8S_MASTER node-role.kubernetes.io/master:NoSchedule-
 git clone https://github.com/sorli2se/cts.git
 ```
 
-#### Jenkins RBAC Permissions
+## Jenkins RBAC Permissions
 ```
 kubectl create -f jenkins-build/rbac.yaml
 ```
 
 ## Find Jenkins secret token
+### Install jq
 ```
-sudo apt  install jq
+yum install epel-release -y
+yum update -y
+yum install jq -y
 ```
 ```
 JENKINS_TOKEN=$(kubectl get secrets jenkins -o json|jq -r '.data.token'|base64 -d)
 echo $JENKINS_TOKEN
 ```
-
 ## Set Up a Private Docker Registry
 ```
 mkdir ~/docker-registry
@@ -226,7 +263,7 @@ https://your_domain/v2
 {}
 
 
-## Jenkins Build and deploy
+# Jenkins Build and deploy
 
 ```
 # Build jenkins docker image
@@ -247,6 +284,7 @@ kubectl create -f  jenkins-build/deployment.yaml
 ```
 kubectl create -f  jenkins-build/service.yaml
 ```
+
 ## Find Jenkins admin password
 
 ```
@@ -414,4 +452,5 @@ https://github.com/DevOpsPlayground/Hands-on-with-Jenkins-CI-CD-Pipelines-in-Kub
 https://www.magalix.com/blog/create-a-ci/cd-pipeline-with-kubernetes-and-jenkins
 https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/
 https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+https://upcloud.com/resources/tutorials/install-kubernetes-cluster-centos-8
 https://www.digitalocean.com/community/tutorials/how-to-set-up-a-private-docker-registry-on-ubuntu-20-04
