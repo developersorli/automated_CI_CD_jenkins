@@ -230,7 +230,7 @@ docker-compose up
 ### Setting Up Nginx Port Forwarding
 ```
 sudo yum install nginx
-/etc/nginx/nginx.conf
+sudo nano /etc/nginx/nginx.conf
 ```
 Paste content in line
 ```
@@ -260,7 +260,7 @@ sudo systemctl restart nginx
 ```
 Open in browser url:
 ```
-https://your_domain/v2
+https://localhost/v2
 ```
 {}
 
