@@ -229,6 +229,7 @@ docker-compose up
 ```
 ### Setting Up Nginx Port Forwarding
 ```
+sudo yum install nginx
 /etc/nginx/nginx.conf
 ```
 Paste content in line
