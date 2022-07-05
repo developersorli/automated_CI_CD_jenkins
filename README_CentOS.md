@@ -254,8 +254,14 @@ Run docker
 docker-compose up
 ```
 
-Restart nginx server
+Increase upload and restart nginx server
 ```
+sudo nano /etc/nginx/nginx.conf
+http {
+        client_max_body_size 16384m;
+        ...
+}
+
 sudo systemctl restart nginx
 ```
 Open in browser url:
@@ -267,7 +273,7 @@ https://localhost/v2
 
 # Jenkins Build and deploy
 
-```
+
 # Build jenkins docker image
 ```
 docker build --build-arg K8S_TOKEN=$JENKINS_TOKEN -t jenkins:docker jenkins-build/.
