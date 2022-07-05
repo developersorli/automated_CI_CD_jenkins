@@ -224,6 +224,7 @@ services:
       - ./data:/data
 ```
 ```
+sudo yum install docker-compose -y
 docker-compose up
 ```
 ### Setting Up Nginx Port Forwarding
