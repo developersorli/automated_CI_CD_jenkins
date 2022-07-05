@@ -5,7 +5,7 @@ FROM jenkins/jenkins:lts
 
 USER root
 
-RUN apt update && apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+RUN apt update && apt install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common wget
 
 # Docker
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
