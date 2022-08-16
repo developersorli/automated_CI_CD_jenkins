@@ -223,16 +223,15 @@ Open in browser url:
 ```
 https://your_domain/v2
 ```
-{}
-
 
 ## Jenkins Build and deploy
 
-```
 # Build jenkins docker image
+
 ```
 docker build --build-arg K8S_TOKEN=$JENKINS_TOKEN -t jenkins:docker jenkins-build/.
 ```
+
 ## Jenkins Push image to local registry
 ```
 docker tag jenkins:docker localhost/jenkins:docker
