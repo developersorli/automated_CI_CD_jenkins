@@ -21,14 +21,14 @@ spec:
           image: localhost/SERVICE_NAME:IMAGE_VERSION
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8080
+            - containerPort: 9080
           resources:
             requests:
               memory: "64Mi"
-              cpu: "80m"
+              cpu: "250m"
             limits:
               memory: "128Mi"
-              cpu: "100m"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -40,7 +40,6 @@ spec:
     app: SERVICE_NAME
   ports:
     - name: http
-      port: 8080
-      targetPort: 8080
+      port: 9080
+      targetPort: 9080
       protocol: TCP
-
